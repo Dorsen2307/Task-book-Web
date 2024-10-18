@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задачник</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        ul { list-style-type: none; }
+    </style>
+</head>
+<body>
+    <h1>Задачник</h1>
+    <input type="text" id="taskInput" placeholder="Введите задачу">
+    <button id="addTaskButton">Добавить задачу</button>
+    <ul id="taskList"></ul>
+
+    <script>
+        const taskList = document.getElementById('taskList');
+        const taskInput = document.getElementById('taskInput');
+        const addTaskButton = document.getElementById('addTaskButton');
+
+        // Функция для загрузки задач
+        const loadTasks = async () => {
+            const response = await fetch('/tasks');
+            const tasks = await response.json();
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.textContent = task.title;
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Удалить';
+                deleteButton.onclick = () => deleteTask(task.id);
+                li.appendChild(deleteButton);
+                taskList.appendChild(li);
+            });
+        };
+
+        // Функция для добавления задачи
+        const addTask = async () => {
+            const taskTitle = taskInput.value;
+            if (taskTitle) {
+                await fetch('/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: taskTitle })
+                });
+                taskInput.value = '';
+                loadTasks();
+            }
+        };
+
+        // Функция для удаления задачи
+        const deleteTask = async (taskId) => {
+            await fetch(`/tasks/${taskId}`, {
+                method: 'DELETE'
+            });
+            loadTasks();
+        };
+
+        // Событие при нажатии на кнопку
+        addTaskButton.addEventListener('click', addTask);
+
+        // Загрузка задач при загрузке страницы
+        loadTasks();
+    </script>
+</body>
+</html>
